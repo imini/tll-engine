@@ -4384,6 +4384,9 @@ Tick timer saved in server config.json.";
 
         public static LocalizedString floordown = @"Floor Down";
 
+        public static LocalizedString multifloorhint =
+            @"Enable multi-floor in resources/config.json (Map → MultiFloor → Enabled) and reconnect to edit floors.";
+
     }
 
     public partial struct MapProperties

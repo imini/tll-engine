@@ -32,6 +32,7 @@ namespace Intersect.Editor.Forms.DockingElements
         private void InitializeComponent()
         {
             this.pnlFloorControls = new System.Windows.Forms.Panel();
+            this.lblMultiFloorHint = new System.Windows.Forms.Label();
             this.btnFloorDown = new DarkUI.Controls.DarkButton();
             this.btnFloorUp = new DarkUI.Controls.DarkButton();
             this.nudFloorLevel = new DarkUI.Controls.DarkNumericUpDown();
@@ -50,6 +51,7 @@ namespace Intersect.Editor.Forms.DockingElements
             this.pnlFloorControls.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.pnlFloorControls.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(45)))), ((int)(((byte)(45)))), ((int)(((byte)(48)))));
             this.pnlFloorControls.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.pnlFloorControls.Controls.Add(this.lblMultiFloorHint);
             this.pnlFloorControls.Controls.Add(this.btnFloorDown);
             this.pnlFloorControls.Controls.Add(this.btnFloorUp);
             this.pnlFloorControls.Controls.Add(this.nudFloorLevel);
@@ -59,6 +61,18 @@ namespace Intersect.Editor.Forms.DockingElements
             this.pnlFloorControls.Size = new System.Drawing.Size(148, 70);
             this.pnlFloorControls.TabIndex = 3;
             this.pnlFloorControls.Visible = false;
+            //
+            // lblMultiFloorHint
+            //
+            this.lblMultiFloorHint.AutoSize = true;
+            this.lblMultiFloorHint.ForeColor = System.Drawing.Color.Gainsboro;
+            this.lblMultiFloorHint.Location = new System.Drawing.Point(6, 6);
+            this.lblMultiFloorHint.MaximumSize = new System.Drawing.Size(130, 0);
+            this.lblMultiFloorHint.Name = "lblMultiFloorHint";
+            this.lblMultiFloorHint.Size = new System.Drawing.Size(35, 13);
+            this.lblMultiFloorHint.TabIndex = 4;
+            this.lblMultiFloorHint.Text = "label1";
+            this.lblMultiFloorHint.Visible = false;
             //
             // btnFloorDown
             //
@@ -183,5 +197,6 @@ namespace Intersect.Editor.Forms.DockingElements
         private DarkButton btnFloorUp;
         private DarkNumericUpDown nudFloorLevel;
         private System.Windows.Forms.Label lblFloorHeader;
+        private System.Windows.Forms.Label lblMultiFloorHint;
     }
 }

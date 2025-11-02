@@ -1,4 +1,5 @@
 using System;
+using System.Drawing;
 using System.Runtime.InteropServices;
 using System.Windows.Forms;
 using DarkUI.Forms;
@@ -40,6 +41,8 @@ public partial class FrmMapEditor : DockContent
     private bool mMapChanged;
 
     private bool _suppressFloorValueChanged;
+    private readonly Size _defaultFloorControlsSize;
+    private const int FloorHintPadding = 12;
 
     public struct IconInfo
     {
@@ -69,6 +72,7 @@ public partial class FrmMapEditor : DockContent
     {
         InitializeComponent();
         Icon = Program.Icon;
+        _defaultFloorControlsSize = pnlFloorControls.Size;
         picMap.MouseLeave += (_sender, _args) => tooltipMapAttribute?.Hide();
 
         Globals.ToolChanged += Globals_ToolChanged;
@@ -92,6 +96,7 @@ public partial class FrmMapEditor : DockContent
         lblFloorHeader.Text = Strings.Mapping.floorcontrols;
         btnFloorUp.Text = Strings.Mapping.floorup;
         btnFloorDown.Text = Strings.Mapping.floordown;
+        lblMultiFloorHint.Text = Strings.Mapping.multifloorhint;
     }
 
     private void frmMapEditor_Load(object sender, EventArgs e)
@@ -131,11 +136,29 @@ public partial class FrmMapEditor : DockContent
         }
 
         var multiFloor = Options.Instance.Map.MultiFloor.Enabled;
-        pnlFloorControls.Visible = multiFloor;
+        pnlFloorControls.Visible = true;
         pnlFloorControls.BringToFront();
+
+        lblFloorHeader.Visible = multiFloor;
+        btnFloorUp.Visible = multiFloor;
+        btnFloorDown.Visible = multiFloor;
+        nudFloorLevel.Visible = multiFloor;
+        lblMultiFloorHint.Visible = !multiFloor;
+
         if (!multiFloor)
         {
+            var hintWidth = Math.Max(0, _defaultFloorControlsSize.Width - FloorHintPadding);
+            lblMultiFloorHint.MaximumSize = new Size(hintWidth, 0);
+            var preferredSize = lblMultiFloorHint.GetPreferredSize(new Size(hintWidth, 0));
+            var desiredHeight = preferredSize.Height + FloorHintPadding;
+            pnlFloorControls.Size = new Size(_defaultFloorControlsSize.Width, Math.Max(_defaultFloorControlsSize.Height, desiredHeight));
+
             return;
+        }
+
+        if (pnlFloorControls.Size != _defaultFloorControlsSize)
+        {
+            pnlFloorControls.Size = _defaultFloorControlsSize;
         }
 
         _suppressFloorValueChanged = true;
