@@ -67,14 +67,12 @@ namespace Intersect.Editor.Forms.DockingElements
             this.lblX = new System.Windows.Forms.Label();
             this.lblMap = new System.Windows.Forms.Label();
             this.grpZDimension = new DarkUI.Controls.DarkGroupBox();
-            this.grpGateway = new DarkUI.Controls.DarkGroupBox();
-            this.rbGateway2 = new DarkUI.Controls.DarkRadioButton();
-            this.rbGateway1 = new DarkUI.Controls.DarkRadioButton();
-            this.rbGatewayNone = new DarkUI.Controls.DarkRadioButton();
-            this.grpDimBlock = new DarkUI.Controls.DarkGroupBox();
-            this.rbBlock2 = new DarkUI.Controls.DarkRadioButton();
-            this.rbBlock1 = new DarkUI.Controls.DarkRadioButton();
-            this.rbBlockNone = new DarkUI.Controls.DarkRadioButton();
+            this.nudGatewayLevel = new DarkUI.Controls.DarkNumericUpDown();
+            this.lblGatewayLevel = new System.Windows.Forms.Label();
+            this.nudBlockLevel = new DarkUI.Controls.DarkNumericUpDown();
+            this.lblBlockLevel = new System.Windows.Forms.Label();
+            this.nudFloorLevel = new DarkUI.Controls.DarkNumericUpDown();
+            this.lblFloorLevel = new System.Windows.Forms.Label();
             this.grpSound = new DarkUI.Controls.DarkGroupBox();
             this.nudSoundLoopInterval = new DarkUI.Controls.DarkNumericUpDown();
             this.lblSoundInterval = new System.Windows.Forms.Label();
@@ -153,11 +151,12 @@ namespace Intersect.Editor.Forms.DockingElements
             ((System.ComponentModel.ISupportInitialize)(this.nudWarpY)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.nudWarpX)).BeginInit();
             this.grpZDimension.SuspendLayout();
-            this.grpGateway.SuspendLayout();
-            this.grpDimBlock.SuspendLayout();
             this.grpSound.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.nudSoundLoopInterval)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.nudSoundDistance)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.nudGatewayLevel)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.nudBlockLevel)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.nudFloorLevel)).BeginInit();
             this.grpSlide.SuspendLayout();
             this.grpAnimation.SuspendLayout();
             this.grpNpcList.SuspendLayout();
@@ -680,104 +679,100 @@ namespace Intersect.Editor.Forms.DockingElements
             //
             this.grpZDimension.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(45)))), ((int)(((byte)(45)))), ((int)(((byte)(48)))));
             this.grpZDimension.BorderColor = System.Drawing.Color.FromArgb(((int)(((byte)(90)))), ((int)(((byte)(90)))), ((int)(((byte)(90)))));
-            this.grpZDimension.Controls.Add(this.grpGateway);
-            this.grpZDimension.Controls.Add(this.grpDimBlock);
+            this.grpZDimension.Controls.Add(this.lblFloorLevel);
+            this.grpZDimension.Controls.Add(this.nudFloorLevel);
+            this.grpZDimension.Controls.Add(this.lblBlockLevel);
+            this.grpZDimension.Controls.Add(this.nudBlockLevel);
+            this.grpZDimension.Controls.Add(this.lblGatewayLevel);
+            this.grpZDimension.Controls.Add(this.nudGatewayLevel);
             this.grpZDimension.ForeColor = System.Drawing.Color.Gainsboro;
             this.grpZDimension.Location = new System.Drawing.Point(8, 42);
             this.grpZDimension.Name = "grpZDimension";
-            this.grpZDimension.Size = new System.Drawing.Size(250, 132);
+            this.grpZDimension.Size = new System.Drawing.Size(250, 190);
             this.grpZDimension.TabIndex = 27;
             this.grpZDimension.TabStop = false;
             this.grpZDimension.Text = "Z-Dimension";
             this.grpZDimension.Visible = false;
             //
-            // grpGateway
+            // nudGatewayLevel
             //
-            this.grpGateway.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(45)))), ((int)(((byte)(45)))), ((int)(((byte)(48)))));
-            this.grpGateway.BorderColor = System.Drawing.Color.FromArgb(((int)(((byte)(90)))), ((int)(((byte)(90)))), ((int)(((byte)(90)))));
-            this.grpGateway.Controls.Add(this.rbGateway2);
-            this.grpGateway.Controls.Add(this.rbGateway1);
-            this.grpGateway.Controls.Add(this.rbGatewayNone);
-            this.grpGateway.ForeColor = System.Drawing.Color.Gainsboro;
-            this.grpGateway.Location = new System.Drawing.Point(10, 25);
-            this.grpGateway.Name = "grpGateway";
-            this.grpGateway.Size = new System.Drawing.Size(107, 91);
-            this.grpGateway.TabIndex = 9;
-            this.grpGateway.TabStop = false;
-            this.grpGateway.Text = "Gateway";
+            this.nudGatewayLevel.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(69)))), ((int)(((byte)(73)))), ((int)(((byte)(74)))));
+            this.nudGatewayLevel.ForeColor = System.Drawing.Color.Gainsboro;
+            this.nudGatewayLevel.Location = new System.Drawing.Point(16, 44);
+            this.nudGatewayLevel.Maximum = new decimal(new int[] {
+            255,
+            0,
+            0,
+            0});
+            this.nudGatewayLevel.Name = "nudGatewayLevel";
+            this.nudGatewayLevel.Size = new System.Drawing.Size(219, 20);
+            this.nudGatewayLevel.TabIndex = 0;
             //
-            // rbGateway2
+            // lblGatewayLevel
             //
-            this.rbGateway2.AutoSize = true;
-            this.rbGateway2.Location = new System.Drawing.Point(6, 64);
-            this.rbGateway2.Name = "rbGateway2";
-            this.rbGateway2.Size = new System.Drawing.Size(60, 17);
-            this.rbGateway2.TabIndex = 12;
-            this.rbGateway2.Text = "Level 2";
+            this.lblGatewayLevel.AutoSize = true;
+            this.lblGatewayLevel.Location = new System.Drawing.Point(13, 26);
+            this.lblGatewayLevel.Name = "lblGatewayLevel";
+            this.lblGatewayLevel.Size = new System.Drawing.Size(82, 13);
+            this.lblGatewayLevel.TabIndex = 1;
+            this.lblGatewayLevel.Text = "Gateway Level:";
             //
-            // rbGateway1
+            // nudBlockLevel
             //
-            this.rbGateway1.AutoSize = true;
-            this.rbGateway1.Location = new System.Drawing.Point(6, 41);
-            this.rbGateway1.Name = "rbGateway1";
-            this.rbGateway1.Size = new System.Drawing.Size(60, 17);
-            this.rbGateway1.TabIndex = 11;
-            this.rbGateway1.Text = "Level 1";
+            this.nudBlockLevel.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(69)))), ((int)(((byte)(73)))), ((int)(((byte)(74)))));
+            this.nudBlockLevel.ForeColor = System.Drawing.Color.Gainsboro;
+            this.nudBlockLevel.Location = new System.Drawing.Point(16, 99);
+            this.nudBlockLevel.Maximum = new decimal(new int[] {
+            255,
+            0,
+            0,
+            0});
+            this.nudBlockLevel.Name = "nudBlockLevel";
+            this.nudBlockLevel.Size = new System.Drawing.Size(219, 20);
+            this.nudBlockLevel.TabIndex = 2;
             //
-            // rbGatewayNone
+            // lblBlockLevel
             //
-            this.rbGatewayNone.AutoSize = true;
-            this.rbGatewayNone.Checked = true;
-            this.rbGatewayNone.Location = new System.Drawing.Point(6, 19);
-            this.rbGatewayNone.Name = "rbGatewayNone";
-            this.rbGatewayNone.Size = new System.Drawing.Size(75, 17);
-            this.rbGatewayNone.TabIndex = 10;
-            this.rbGatewayNone.TabStop = true;
-            this.rbGatewayNone.Text = "Not Found";
+            this.lblBlockLevel.AutoSize = true;
+            this.lblBlockLevel.Location = new System.Drawing.Point(13, 81);
+            this.lblBlockLevel.Name = "lblBlockLevel";
+            this.lblBlockLevel.Size = new System.Drawing.Size(74, 13);
+            this.lblBlockLevel.TabIndex = 3;
+            this.lblBlockLevel.Text = "Blocked Level:";
             //
-            // grpDimBlock
+            // nudFloorLevel
             //
-            this.grpDimBlock.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(45)))), ((int)(((byte)(45)))), ((int)(((byte)(48)))));
-            this.grpDimBlock.BorderColor = System.Drawing.Color.FromArgb(((int)(((byte)(90)))), ((int)(((byte)(90)))), ((int)(((byte)(90)))));
-            this.grpDimBlock.Controls.Add(this.rbBlock2);
-            this.grpDimBlock.Controls.Add(this.rbBlock1);
-            this.grpDimBlock.Controls.Add(this.rbBlockNone);
-            this.grpDimBlock.ForeColor = System.Drawing.Color.Gainsboro;
-            this.grpDimBlock.Location = new System.Drawing.Point(123, 25);
-            this.grpDimBlock.Name = "grpDimBlock";
-            this.grpDimBlock.Size = new System.Drawing.Size(111, 91);
-            this.grpDimBlock.TabIndex = 8;
-            this.grpDimBlock.TabStop = false;
-            this.grpDimBlock.Text = "Block";
+            this.nudFloorLevel.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(69)))), ((int)(((byte)(73)))), ((int)(((byte)(74)))));
+            this.nudFloorLevel.ForeColor = System.Drawing.Color.Gainsboro;
+            this.nudFloorLevel.Location = new System.Drawing.Point(16, 154);
+            this.nudFloorLevel.Maximum = new decimal(new int[] {
+            255,
+            0,
+            0,
+            0});
+            this.nudFloorLevel.Minimum = new decimal(new int[] {
+            1,
+            0,
+            0,
+            -2147483648});
+            this.nudFloorLevel.Name = "nudFloorLevel";
+            this.nudFloorLevel.Size = new System.Drawing.Size(219, 20);
+            this.nudFloorLevel.TabIndex = 4;
+            this.nudFloorLevel.Value = new decimal(new int[] {
+            -1,
+            0,
+            0,
+            -2147483648});
             //
-            // rbBlock2
+            // lblFloorLevel
             //
-            this.rbBlock2.AutoSize = true;
-            this.rbBlock2.Location = new System.Drawing.Point(6, 64);
-            this.rbBlock2.Name = "rbBlock2";
-            this.rbBlock2.Size = new System.Drawing.Size(60, 17);
-            this.rbBlock2.TabIndex = 15;
-            this.rbBlock2.Text = "Level 2";
+            this.lblFloorLevel.AutoSize = true;
+            this.lblFloorLevel.Location = new System.Drawing.Point(13, 136);
+            this.lblFloorLevel.Name = "lblFloorLevel";
+            this.lblFloorLevel.Size = new System.Drawing.Size(62, 13);
+            this.lblFloorLevel.TabIndex = 5;
+            this.lblFloorLevel.Text = "Floor Level:";
             //
-            // rbBlock1
-            //
-            this.rbBlock1.AutoSize = true;
-            this.rbBlock1.Location = new System.Drawing.Point(6, 41);
-            this.rbBlock1.Name = "rbBlock1";
-            this.rbBlock1.Size = new System.Drawing.Size(60, 17);
-            this.rbBlock1.TabIndex = 14;
-            this.rbBlock1.Text = "Level 1";
-            //
-            // rbBlockNone
-            //
-            this.rbBlockNone.AutoSize = true;
-            this.rbBlockNone.Checked = true;
-            this.rbBlockNone.Location = new System.Drawing.Point(6, 19);
-            this.rbBlockNone.Name = "rbBlockNone";
-            this.rbBlockNone.Size = new System.Drawing.Size(51, 17);
-            this.rbBlockNone.TabIndex = 13;
-            this.rbBlockNone.TabStop = true;
-            this.rbBlockNone.Text = "None";
             //
             // grpSound
             //
@@ -1724,14 +1719,13 @@ namespace Intersect.Editor.Forms.DockingElements
             ((System.ComponentModel.ISupportInitialize)(this.nudWarpY)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.nudWarpX)).EndInit();
             this.grpZDimension.ResumeLayout(false);
-            this.grpGateway.ResumeLayout(false);
-            this.grpGateway.PerformLayout();
-            this.grpDimBlock.ResumeLayout(false);
-            this.grpDimBlock.PerformLayout();
             this.grpSound.ResumeLayout(false);
             this.grpSound.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.nudSoundLoopInterval)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.nudSoundDistance)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.nudGatewayLevel)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.nudBlockLevel)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.nudFloorLevel)).EndInit();
             this.grpSlide.ResumeLayout(false);
             this.grpSlide.PerformLayout();
             this.grpAnimation.ResumeLayout(false);
@@ -1787,14 +1781,12 @@ namespace Intersect.Editor.Forms.DockingElements
         private System.Windows.Forms.Label lblX;
         private System.Windows.Forms.Label lblMap;
         private DarkGroupBox grpZDimension;
-        private DarkGroupBox grpGateway;
-        private DarkRadioButton rbGateway2;
-        private DarkRadioButton rbGateway1;
-        private DarkRadioButton rbGatewayNone;
-        private DarkGroupBox grpDimBlock;
-        private DarkRadioButton rbBlock2;
-        private DarkRadioButton rbBlock1;
-        private DarkRadioButton rbBlockNone;
+        private DarkNumericUpDown nudGatewayLevel;
+        private System.Windows.Forms.Label lblGatewayLevel;
+        private DarkNumericUpDown nudBlockLevel;
+        private System.Windows.Forms.Label lblBlockLevel;
+        private DarkNumericUpDown nudFloorLevel;
+        private System.Windows.Forms.Label lblFloorLevel;
         private System.Windows.Forms.Label lblLayer;
         private DarkGroupBox grpNpcList;
         private DarkButton btnRemoveMapNpc;

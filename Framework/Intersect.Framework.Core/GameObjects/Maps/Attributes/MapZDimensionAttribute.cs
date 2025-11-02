@@ -14,11 +14,16 @@ public partial class MapZDimensionAttribute : MapAttribute
     [EditorFormatted("Attributes", "FormatZLevel")]
     public byte BlockedLevel { get; set; }
 
+    [EditorLabel("Attributes", "ZFloor")]
+    [EditorFormatted("Attributes", "FormatZLevelOptional")]
+    public short? FloorLevel { get; set; }
+
     public override MapAttribute Clone()
     {
         var att = (MapZDimensionAttribute) base.Clone();
         att.GatewayTo = GatewayTo;
         att.BlockedLevel = BlockedLevel;
+        att.FloorLevel = FloorLevel;
 
         return att;
     }
