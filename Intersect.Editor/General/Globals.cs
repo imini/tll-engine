@@ -1,3 +1,5 @@
+using System;
+using Intersect.Editor.Core;
 using Intersect.Editor.Forms;
 using Intersect.Editor.Forms.DockingElements;
 using Intersect.Editor.Forms.Editors;
@@ -79,6 +81,19 @@ public static partial class Globals
     public static int CurTileX;
 
     public static int CurTileY;
+
+    private static int _currentFloorLevel;
+
+    /// <summary>
+    /// Exposes the floor the editor is currently focused on.
+    /// All rendering and editing respects this value when multi-floor mode is active.
+    /// </summary>
+    public static int CurrentFloorLevel => _currentFloorLevel;
+
+    /// <summary>
+    /// Event fired whenever the active floor changes so interested UI can stay in sync.
+    /// </summary>
+    public static event EventHandler? FloorChanged;
 
     public static bool Dragging = false;
 
@@ -169,6 +184,62 @@ public static partial class Globals
     public static bool ViewingMapProperties = false;
 
     public static int WaterfallFrame = 0;
+
+    /// <summary>
+    /// Updates the currently selected floor and notifies the rest of the editor.
+    /// </summary>
+    /// <param name="floor">The floor index the user wants to focus on.</param>
+    public static void SetCurrentFloorLevel(int floor)
+    {
+        var clampedFloor = Math.Clamp(floor, sbyte.MinValue, sbyte.MaxValue);
+        if (_currentFloorLevel == clampedFloor)
+        {
+            return;
+        }
+
+        _currentFloorLevel = clampedFloor;
+        Graphics.TilePreviewUpdated = true;
+        FloorChanged?.Invoke(null, EventArgs.Empty);
+    }
+
+    /// <summary>
+    /// Returns whether the supplied tile lives within the currently visible floors.
+    /// </summary>
+    public static bool CanEditTile(Maps.MapInstance map, int tileX, int tileY)
+    {
+        if (!Options.Instance.Map.MultiFloor.Enabled)
+        {
+            return true;
+        }
+
+        var floorLevel = map.GetTileFloorLevel(tileX, tileY);
+        return IsFloorVisible(_currentFloorLevel, floorLevel);
+    }
+
+    /// <summary>
+    /// Shared helper that encapsulates the multi-floor visibility band logic.
+    /// </summary>
+    public static bool IsFloorVisible(int viewerFloor, int floorLevel)
+    {
+        var options = Options.Instance.Map.MultiFloor;
+        if (!options.Enabled)
+        {
+            return true;
+        }
+
+        var delta = floorLevel - viewerFloor;
+        if (delta > options.VisibleFloorsAbove)
+        {
+            return false;
+        }
+
+        if (-delta > options.VisibleFloorsBelow)
+        {
+            return false;
+        }
+
+        return true;
+    }
 
     public static string IntToDir(int index)
     {
