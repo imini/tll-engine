@@ -118,7 +118,12 @@ public partial class FrmMapLayers : DockContent
             SetTileset(cmbTilesets.Items[0].ToString());
         }
 
-        grpZResource.Visible = Options.Instance.Map.ZDimensionVisible;
+        var zDimensionEnabled = Options.Instance.Map.ZDimensionVisible || Options.Instance.Map.MultiFloor.Enabled;
+        grpZResource.Visible = zDimensionEnabled;
+        if (grpResource != null)
+        {
+            grpResource.Height = zDimensionEnabled ? 120 : 75;
+        }
         grpInstanceSettings.Visible = chkChangeInstance.Checked;
 
         cmbInstanceType.Items.Clear();
@@ -505,7 +510,9 @@ public partial class FrmMapLayers : DockContent
         cmbAttributeType.Items.Clear();
         foreach (var type in attributeTypes)
         {
-            if (type == MapAttributeType.ZDimension && !Options.Instance.Map.ZDimensionVisible)
+            if (type == MapAttributeType.ZDimension &&
+                !Options.Instance.Map.ZDimensionVisible &&
+                !Options.Instance.Map.MultiFloor.Enabled)
             {
                 continue;
             }
