@@ -4378,6 +4378,12 @@ Tick timer saved in server config.json.";
         public static LocalizedString maphaschangesdialog =
             @"There are unsaved changes to this map, are you sure you want to exit?";
 
+        public static LocalizedString floorcontrols = @"Floor";
+
+        public static LocalizedString floorup = @"Floor Up";
+
+        public static LocalizedString floordown = @"Floor Down";
+
     }
 
     public partial struct MapProperties

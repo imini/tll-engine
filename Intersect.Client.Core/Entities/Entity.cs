@@ -1023,6 +1023,9 @@ public partial class Entity : IEntity
         (!IsStealthed || this == Globals.Me || Globals.Me?.IsInMyParty(Id) == true) &&
         IsVisibleOnFloor();
 
+    /// <summary>
+    /// Evaluates whether this entity should be drawn for the local player based on the active floor band.
+    /// </summary>
     protected virtual bool IsVisibleOnFloor()
     {
         var multiFloor = Options.Instance.Map.MultiFloor;

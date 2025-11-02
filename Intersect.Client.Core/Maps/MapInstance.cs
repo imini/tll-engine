@@ -954,6 +954,9 @@ public partial class MapInstance : MapDescriptor, IGameObject<Guid, MapInstance>
         }
     }
 
+    /// <summary>
+    /// Determines if a given floor should be visible for the supplied viewer according to the configured band.
+    /// </summary>
     private static bool IsFloorVisible(int viewerFloor, int floorLevel, MultiFloorOptions options)
     {
         var delta = floorLevel - viewerFloor;
@@ -970,6 +973,9 @@ public partial class MapInstance : MapDescriptor, IGameObject<Guid, MapInstance>
         return true;
     }
 
+    /// <summary>
+    /// True when the tile at the requested location should be rendered for the current viewer floor.
+    /// </summary>
     private bool ShouldRenderTile(int tileX, int tileY)
     {
         if (!Options.Instance.Map.MultiFloor.Enabled)
@@ -986,6 +992,10 @@ public partial class MapInstance : MapDescriptor, IGameObject<Guid, MapInstance>
         return IsFloorVisible(player.Z, tileFloor, Options.Instance.Map.MultiFloor);
     }
 
+    /// <summary>
+    /// Resolves the logical floor for the specified tile.
+    /// This mirrors the logic used on the editor so both experiences match.
+    /// </summary>
     private int GetTileFloorLevel(int tileX, int tileY)
     {
         if (tileX < 0 || tileY < 0 || tileX >= _width || tileY >= _height)

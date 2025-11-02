@@ -189,6 +189,21 @@ public static partial class Graphics
         );
     }
 
+    private static bool ShouldRenderTile(MapInstance map, int x, int y)
+    {
+        if (map == null)
+        {
+            return false;
+        }
+
+        if (!Options.Instance.Map.MultiFloor.Enabled)
+        {
+            return true;
+        }
+
+        return Globals.IsFloorVisible(Globals.CurrentFloorLevel, map.GetTileFloorLevel(x, y));
+    }
+
     //Rendering
     public static void Render()
     {
@@ -745,6 +760,11 @@ public static partial class Graphics
         {
             for (var y = y1; y < y2; y++)
             {
+                if (!ShouldRenderTile(tmpMap, x, y))
+                {
+                    continue;
+                }
+
                 foreach (var drawLayer in drawLayers)
                 {
                     if (screenShotting || Globals.MapLayersWindow.LayerVisibility[drawLayer])
@@ -831,6 +851,11 @@ public static partial class Graphics
         {
             foreach (var light in tmpMap.Lights)
             {
+                if (!ShouldRenderTile(tmpMap, light.TileX, light.TileY))
+                {
+                    continue;
+                }
+
                 double w = light.Size;
                 var x = xoffset +
                         Options.Instance.Map.MapWidth * Options.Instance.Map.TileWidth -
@@ -921,6 +946,11 @@ public static partial class Graphics
                     {
                         for (var y = 0; y < Options.Instance.Map.MapHeight; y++)
                         {
+                            if (!ShouldRenderTile(tmpMap, x, y))
+                            {
+                                continue;
+                            }
+
                             var attr = tmpMap.Attributes[x, y];
                             if ((attr?.Type ?? MapAttributeType.Walkable) == MapAttributeType.Walkable)
                             {
@@ -1384,6 +1414,11 @@ public static partial class Graphics
                     continue;
                 }
 
+                if (!ShouldRenderTile(tmpMap, x, y))
+                {
+                    continue;
+                }
+
                 float xpos = x * tileWidth + xoffset;
                 float ypos = y * tileHeight + yoffset;
 
@@ -1611,6 +1646,11 @@ public static partial class Graphics
         {
             for (var x = x1; x < x2; x++)
             {
+                if (!ShouldRenderTile(tmpMap, x, y))
+                {
+                    continue;
+                }
+
                 var tmpEvent = tmpMap.FindEventAt(x, y);
                 if (tmpEvent == null)
                 {

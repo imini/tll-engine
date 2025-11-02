@@ -542,7 +542,8 @@ public partial class FrmMapLayers : DockContent
                 grpZDimension.Visible = true;
                 nudGatewayLevel.Value = 0;
                 nudBlockLevel.Value = 0;
-                nudFloorLevel.Value = -1;
+                var currentFloor = Math.Clamp(Globals.CurrentFloorLevel, (int)nudFloorLevel.Minimum, (int)nudFloorLevel.Maximum);
+                nudFloorLevel.Value = currentFloor;
                 break;
             case MapAttributeType.Warp:
                 grpWarp.Visible = true;
@@ -766,6 +767,11 @@ public partial class FrmMapLayers : DockContent
             attribute = CreateAttribute();
         }
 
+        if (mapDescriptor is Maps.MapInstance mapInstance && !Globals.CanEditTile(mapInstance, x, y))
+        {
+            return attribute;
+        }
+
         mapDescriptor.Attributes[x, y] = attribute;
 
         return attribute;
@@ -773,6 +779,11 @@ public partial class FrmMapLayers : DockContent
 
     public bool RemoveAttribute(MapDescriptor tmpMap, int x, int y)
     {
+        if (tmpMap is Maps.MapInstance mapInstance && !Globals.CanEditTile(mapInstance, x, y))
+        {
+            return false;
+        }
+
         if (tmpMap.Attributes[x, y] != null && tmpMap.Attributes[x, y].Type != MapAttributeType.Walkable)
         {
             tmpMap.Attributes[x, y] = null;
