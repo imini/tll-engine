@@ -932,13 +932,22 @@ public static partial class Strings
 
         public static string FormatZLevel(int level)
         {
-            switch (level)
+            return level switch
             {
-                case 0: return ZNone;
-                case 1: return ZLevel1;
-                case 2: return ZLevel2;
-                default: throw new ArgumentOutOfRangeException(nameof(level));
-            }
+                <= 0 => ZNone,
+                1 => ZLevel1,
+                2 => ZLevel2,
+                _ => string.Format(ZLevelFormat, level),
+            };
+        }
+
+        public static string FormatZLevelOptional(int level)
+        {
+            return level switch
+            {
+                < 0 => ZAutomatic,
+                _ => FormatZLevel(level),
+            };
         }
 
         public static LocalizedString Animation = @"Animation";
@@ -1037,11 +1046,21 @@ public static partial class Strings
 
         public static LocalizedString ZGateway = @"Gateway";
 
+        public static LocalizedString ZGatewayLevel = @"Gateway Level";
+
+        public static LocalizedString ZBlockLevel = @"Blocked Level";
+
+        public static LocalizedString ZFloor = @"Floor";
+
         public static LocalizedString ZLevel1 = @"Level 1";
 
         public static LocalizedString ZLevel2 = @"Level 2";
 
+        public static LocalizedString ZLevelFormat = @"Level {00}";
+
         public static LocalizedString ZNone = @"None";
+
+        public static LocalizedString ZAutomatic = @"Automatic";
     }
 
     public partial struct ClassEditor
@@ -4358,6 +4377,15 @@ Tick timer saved in server config.json.";
 
         public static LocalizedString maphaschangesdialog =
             @"There are unsaved changes to this map, are you sure you want to exit?";
+
+        public static LocalizedString floorcontrols = @"Floor";
+
+        public static LocalizedString floorup = @"Floor Up";
+
+        public static LocalizedString floordown = @"Floor Down";
+
+        public static LocalizedString multifloorhint =
+            @"Enable multi-floor in resources/config.json (Map → MultiFloor → Enabled) and reconnect to edit floors.";
 
     }
 

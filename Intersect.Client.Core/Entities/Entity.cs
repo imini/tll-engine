@@ -1018,7 +1018,40 @@ public partial class Entity : IEntity
     /// <summary>
     /// Returns whether this entity should be drawn.
     /// </summary>
-    public virtual bool ShouldDraw => !IsHidden && (!IsStealthed || this == Globals.Me || Globals.Me?.IsInMyParty(Id) == true);
+    public virtual bool ShouldDraw =>
+        !IsHidden &&
+        (!IsStealthed || this == Globals.Me || Globals.Me?.IsInMyParty(Id) == true) &&
+        IsVisibleOnFloor();
+
+    /// <summary>
+    /// Evaluates whether this entity should be drawn for the local player based on the active floor band.
+    /// </summary>
+    protected virtual bool IsVisibleOnFloor()
+    {
+        var multiFloor = Options.Instance.Map.MultiFloor;
+        if (!multiFloor.Enabled)
+        {
+            return true;
+        }
+
+        if (Globals.Me is not { } viewer)
+        {
+            return true;
+        }
+
+        var delta = Z - viewer.Z;
+        if (delta > multiFloor.VisibleFloorsAbove)
+        {
+            return false;
+        }
+
+        if (-delta > multiFloor.VisibleFloorsBelow)
+        {
+            return false;
+        }
+
+        return true;
+    }
 
     /// <summary>
     /// Returns whether the name of this entity should be drawn.

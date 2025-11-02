@@ -1,4 +1,7 @@
+using System;
+using System.Drawing;
 using System.Runtime.InteropServices;
+using System.Windows.Forms;
 using DarkUI.Forms;
 using Intersect.Config;
 using Intersect.Editor.Classes.Maps;
@@ -37,6 +40,10 @@ public partial class FrmMapEditor : DockContent
 
     private bool mMapChanged;
 
+    private bool _suppressFloorValueChanged;
+    private readonly Size _defaultFloorControlsSize;
+    private const int FloorHintPadding = 12;
+
     public struct IconInfo
     {
         public bool FIcon;
@@ -65,9 +72,17 @@ public partial class FrmMapEditor : DockContent
     {
         InitializeComponent();
         Icon = Program.Icon;
+        _defaultFloorControlsSize = pnlFloorControls.Size;
         picMap.MouseLeave += (_sender, _args) => tooltipMapAttribute?.Hide();
 
         Globals.ToolChanged += Globals_ToolChanged;
+        Globals.FloorChanged += Globals_FloorChanged;
+        KeyDown += FrmMapEditor_KeyDown;
+        FormClosed += (_, _) =>
+        {
+            Globals.ToolChanged -= Globals_ToolChanged;
+            Globals.FloorChanged -= Globals_FloorChanged;
+        };
     }
 
     private void Globals_ToolChanged(object? sender, EventArgs e)
@@ -78,6 +93,10 @@ public partial class FrmMapEditor : DockContent
     private void InitLocalization()
     {
         Text = Strings.Mapping.editortitle;
+        lblFloorHeader.Text = Strings.Mapping.floorcontrols;
+        btnFloorUp.Text = Strings.Mapping.floorup;
+        btnFloorDown.Text = Strings.Mapping.floordown;
+        lblMultiFloorHint.Text = Strings.Mapping.multifloorhint;
     }
 
     private void frmMapEditor_Load(object sender, EventArgs e)
@@ -95,6 +114,97 @@ public partial class FrmMapEditor : DockContent
 
         CreateSwapChain();
         InitLocalization();
+        UpdateFloorControls();
+    }
+
+    private void Globals_FloorChanged(object? sender, EventArgs e)
+    {
+        if (InvokeRequired)
+        {
+            BeginInvoke(new Action(UpdateFloorControls));
+            return;
+        }
+
+        UpdateFloorControls();
+    }
+
+    private void UpdateFloorControls()
+    {
+        if (pnlFloorControls == null)
+        {
+            return;
+        }
+
+        var multiFloor = Options.Instance.Map.MultiFloor.Enabled;
+        pnlFloorControls.Visible = true;
+        pnlFloorControls.BringToFront();
+
+        lblFloorHeader.Visible = multiFloor;
+        btnFloorUp.Visible = multiFloor;
+        btnFloorDown.Visible = multiFloor;
+        nudFloorLevel.Visible = multiFloor;
+        lblMultiFloorHint.Visible = !multiFloor;
+
+        if (!multiFloor)
+        {
+            var hintWidth = Math.Max(0, _defaultFloorControlsSize.Width - FloorHintPadding);
+            lblMultiFloorHint.MaximumSize = new Size(hintWidth, 0);
+            var preferredSize = lblMultiFloorHint.GetPreferredSize(new Size(hintWidth, 0));
+            var desiredHeight = preferredSize.Height + FloorHintPadding;
+            pnlFloorControls.Size = new Size(_defaultFloorControlsSize.Width, Math.Max(_defaultFloorControlsSize.Height, desiredHeight));
+
+            return;
+        }
+
+        if (pnlFloorControls.Size != _defaultFloorControlsSize)
+        {
+            pnlFloorControls.Size = _defaultFloorControlsSize;
+        }
+
+        _suppressFloorValueChanged = true;
+        var clampedValue = Math.Clamp(Globals.CurrentFloorLevel, (int)nudFloorLevel.Minimum, (int)nudFloorLevel.Maximum);
+        nudFloorLevel.Value = clampedValue;
+        _suppressFloorValueChanged = false;
+    }
+
+    private void btnFloorUp_Click(object sender, EventArgs e)
+    {
+        Globals.SetCurrentFloorLevel(Globals.CurrentFloorLevel + 1);
+    }
+
+    private void btnFloorDown_Click(object sender, EventArgs e)
+    {
+        Globals.SetCurrentFloorLevel(Globals.CurrentFloorLevel - 1);
+    }
+
+    private void nudFloorLevel_ValueChanged(object sender, EventArgs e)
+    {
+        if (_suppressFloorValueChanged)
+        {
+            return;
+        }
+
+        Globals.SetCurrentFloorLevel((int)nudFloorLevel.Value);
+    }
+
+    private void FrmMapEditor_KeyDown(object? sender, KeyEventArgs e)
+    {
+        if (!Options.Instance.Map.MultiFloor.Enabled)
+        {
+            return;
+        }
+
+        switch (e.KeyCode)
+        {
+            case Keys.PageUp:
+                Globals.SetCurrentFloorLevel(Globals.CurrentFloorLevel + 1);
+                e.Handled = true;
+                break;
+            case Keys.PageDown:
+                Globals.SetCurrentFloorLevel(Globals.CurrentFloorLevel - 1);
+                e.Handled = true;
+                break;
+        }
     }
 
     public void InitMapEditor()
@@ -603,6 +713,13 @@ public partial class FrmMapEditor : DockContent
             Globals.CurTileY = Options.Instance.Map.MapHeight - 1;
         }
 
+        var activeMap = Globals.CurrentMap;
+        if (activeMap != null && !Globals.CanEditTile(activeMap, Globals.CurTileX, Globals.CurTileY))
+        {
+            tooltipMapAttribute.Hide();
+            return;
+        }
+
         if (Globals.CurrentLayer == LayerOptions.Attributes)
         {
             var hoveredAttribute = Globals.CurrentMap?.Attributes[Globals.CurTileX, Globals.CurTileY];
@@ -705,6 +822,11 @@ public partial class FrmMapEditor : DockContent
                                         Globals.CurTileY + y >= 0 &&
                                         Globals.CurTileY + y < Options.Instance.Map.MapHeight)
                                     {
+                                        if (!Globals.CanEditTile(tmpMap, Globals.CurTileX + x, Globals.CurTileY + y))
+                                        {
+                                            continue;
+                                        }
+
                                         tmpMap.Layers[Globals.CurrentLayer][Globals.CurTileX + x, Globals.CurTileY + y].TilesetId = Globals.CurrentTileset.Id;
 
                                         tmpMap.Layers[Globals.CurrentLayer][Globals.CurTileX + x, Globals.CurTileY + y].X = Globals.CurSelX + x;
@@ -720,15 +842,18 @@ public partial class FrmMapEditor : DockContent
                         }
                         else
                         {
-                            tmpMap.Layers[Globals.CurrentLayer][Globals.CurTileX, Globals.CurTileY].TilesetId = Globals.CurrentTileset.Id;
+                            if (Globals.CanEditTile(tmpMap, Globals.CurTileX, Globals.CurTileY))
+                            {
+                                tmpMap.Layers[Globals.CurrentLayer][Globals.CurTileX, Globals.CurTileY].TilesetId = Globals.CurrentTileset.Id;
 
-                            tmpMap.Layers[Globals.CurrentLayer][Globals.CurTileX, Globals.CurTileY].X = Globals.CurSelX;
+                                tmpMap.Layers[Globals.CurrentLayer][Globals.CurTileX, Globals.CurTileY].X = Globals.CurSelX;
 
-                            tmpMap.Layers[Globals.CurrentLayer][Globals.CurTileX, Globals.CurTileY].Y = Globals.CurSelY;
+                                tmpMap.Layers[Globals.CurrentLayer][Globals.CurTileX, Globals.CurTileY].Y = Globals.CurSelY;
 
-                            tmpMap.Layers[Globals.CurrentLayer][Globals.CurTileX, Globals.CurTileY].Autotile = (byte)Globals.Autotilemode;
+                                tmpMap.Layers[Globals.CurrentLayer][Globals.CurTileX, Globals.CurTileY].Autotile = (byte)Globals.Autotilemode;
 
-                            tmpMap.Autotiles.UpdateAutoTiles(Globals.CurTileX, Globals.CurTileY, Globals.CurrentLayer, tmpMap.GenerateAutotileGrid());
+                                tmpMap.Autotiles.UpdateAutoTiles(Globals.CurTileX, Globals.CurTileY, Globals.CurrentLayer, tmpMap.GenerateAutotileGrid());
+                            }
                         }
 
                         tmpMap.Autotiles.UpdateCliffAutotiles(tmpMap, Globals.CurrentLayer);
@@ -874,6 +999,11 @@ public partial class FrmMapEditor : DockContent
                 {
                     for (var y = selY; y < selY + selH + 1; y++)
                     {
+                        if (tmpMap != null && !Globals.CanEditTile(tmpMap, x, y))
+                        {
+                            continue;
+                        }
+
                         if (Globals.MouseButton == 0)
                         {
                             Globals.MapLayersWindow.PlaceAttribute(tmpMap, x, y);
@@ -915,6 +1045,11 @@ public partial class FrmMapEditor : DockContent
                                 x0 < selX + selW + 1 &&
                                 y0 < selY + selH + 1)
                             {
+                                if (tmpMap != null && !Globals.CanEditTile(tmpMap, x0, y0))
+                                {
+                                    continue;
+                                }
+
                                 if (Globals.MouseButton == 0)
                                 {
                                     if (Globals.CurrentTileset != null)
@@ -942,6 +1077,11 @@ public partial class FrmMapEditor : DockContent
                         {
                             if (Globals.MouseButton == 0)
                             {
+                                if (tmpMap != null && !Globals.CanEditTile(tmpMap, x0, y0))
+                                {
+                                    continue;
+                                }
+
                                 tmpMap.Layers[Globals.CurrentLayer][x0, y0].TilesetId = Globals.CurrentTileset.Id;
 
                                 tmpMap.Layers[Globals.CurrentLayer][x0, y0].X = Globals.CurSelX;

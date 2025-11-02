@@ -1,3 +1,4 @@
+using System;
 using Intersect.Config;
 using Intersect.Editor.Content;
 using Intersect.Editor.Core;
@@ -117,7 +118,12 @@ public partial class FrmMapLayers : DockContent
             SetTileset(cmbTilesets.Items[0].ToString());
         }
 
-        grpZResource.Visible = Options.Instance.Map.ZDimensionVisible;
+        var zDimensionEnabled = Options.Instance.Map.ZDimensionVisible || Options.Instance.Map.MultiFloor.Enabled;
+        grpZResource.Visible = zDimensionEnabled;
+        if (grpResource != null)
+        {
+            grpResource.Height = zDimensionEnabled ? 120 : 75;
+        }
         grpInstanceSettings.Visible = chkChangeInstance.Checked;
 
         cmbInstanceType.Items.Clear();
@@ -470,12 +476,12 @@ public partial class FrmMapLayers : DockContent
     // Used for returning an integer value depending on which radio button is selected on the forms. This is merely used to make PlaceAtrribute less messy.
     private byte GetEditorDimensionGateway()
     {
-        return rbGateway1.Checked ? (byte)1 : rbGateway2.Checked ? (byte)2 : (byte)0;
+        return (byte)Math.Clamp((int)nudGatewayLevel.Value, byte.MinValue, byte.MaxValue);
     }
 
     private byte GetEditorDimensionBlock()
     {
-        return rbBlock1.Checked ? (byte)1 : rbBlock2.Checked ? (byte)2 : (byte)0;
+        return (byte)Math.Clamp((int)nudBlockLevel.Value, byte.MinValue, byte.MaxValue);
     }
 
     private static readonly Dictionary<MapAttributeType, string> AttributeTypeStrings = new()
@@ -504,7 +510,9 @@ public partial class FrmMapLayers : DockContent
         cmbAttributeType.Items.Clear();
         foreach (var type in attributeTypes)
         {
-            if (type == MapAttributeType.ZDimension && !Options.Instance.Map.ZDimensionVisible)
+            if (type == MapAttributeType.ZDimension &&
+                !Options.Instance.Map.ZDimensionVisible &&
+                !Options.Instance.Map.MultiFloor.Enabled)
             {
                 continue;
             }
@@ -539,6 +547,10 @@ public partial class FrmMapLayers : DockContent
                 break;
             case MapAttributeType.ZDimension:
                 grpZDimension.Visible = true;
+                nudGatewayLevel.Value = 0;
+                nudBlockLevel.Value = 0;
+                var currentFloor = Math.Clamp(Globals.CurrentFloorLevel, (int)nudFloorLevel.Minimum, (int)nudFloorLevel.Maximum);
+                nudFloorLevel.Value = currentFloor;
                 break;
             case MapAttributeType.Warp:
                 grpWarp.Visible = true;
@@ -690,6 +702,8 @@ public partial class FrmMapLayers : DockContent
         var zDimensionAttribute = (MapZDimensionAttribute)MapAttribute.CreateAttribute(MapAttributeType.ZDimension);
         zDimensionAttribute.GatewayTo = GetEditorDimensionGateway();
         zDimensionAttribute.BlockedLevel = GetEditorDimensionBlock();
+        var floorValue = (int)nudFloorLevel.Value;
+        zDimensionAttribute.FloorLevel = floorValue < 0 ? null : (short?)floorValue;
         return zDimensionAttribute;
     }
 
@@ -760,6 +774,11 @@ public partial class FrmMapLayers : DockContent
             attribute = CreateAttribute();
         }
 
+        if (mapDescriptor is Maps.MapInstance mapInstance && !Globals.CanEditTile(mapInstance, x, y))
+        {
+            return attribute;
+        }
+
         mapDescriptor.Attributes[x, y] = attribute;
 
         return attribute;
@@ -767,6 +786,11 @@ public partial class FrmMapLayers : DockContent
 
     public bool RemoveAttribute(MapDescriptor tmpMap, int x, int y)
     {
+        if (tmpMap is Maps.MapInstance mapInstance && !Globals.CanEditTile(mapInstance, x, y))
+        {
+            return false;
+        }
+
         if (tmpMap.Attributes[x, y] != null && tmpMap.Attributes[x, y].Type != MapAttributeType.Walkable)
         {
             tmpMap.Attributes[x, y] = null;
@@ -1042,14 +1066,9 @@ public partial class FrmMapLayers : DockContent
 
         //Z-Dimension
         grpZDimension.Text = Strings.Attributes.ZDimension;
-        grpGateway.Text = Strings.Attributes.ZGateway;
-        grpDimBlock.Text = Strings.Attributes.ZBlock;
-        rbGatewayNone.Text = Strings.Attributes.ZNone;
-        rbGateway1.Text = Strings.Attributes.ZLevel1;
-        rbGateway2.Text = Strings.Attributes.ZLevel2;
-        rbBlockNone.Text = Strings.Attributes.ZNone;
-        rbBlock1.Text = Strings.Attributes.ZLevel1;
-        rbBlock2.Text = Strings.Attributes.ZLevel2;
+        lblGatewayLevel.Text = Strings.Attributes.ZGatewayLevel;
+        lblBlockLevel.Text = Strings.Attributes.ZBlockLevel;
+        lblFloorLevel.Text = Strings.Attributes.ZFloor;
 
         //Warp
         grpWarp.Text = Strings.Attributes.Warp;
