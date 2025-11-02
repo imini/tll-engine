@@ -2,7 +2,7 @@ using Intersect.Editor.General;
 using Intersect.Editor.Localization;
 using Intersect.Framework.Core.GameObjects.Lighting;
 using Intersect.GameObjects;
-using Graphics = Intersect.Editor.Core.Graphics;
+using EditorGraphics = Intersect.Editor.Core.Graphics;
 
 namespace Intersect.Editor.Forms.Controls;
 
@@ -91,7 +91,7 @@ public partial class LightEditorCtrl : UserControl
             }
         }
 
-        Graphics.TilePreviewUpdated = true;
+        EditorGraphics.TilePreviewUpdated = true;
         if (CanClose)
         {
             Visible = false;
@@ -107,7 +107,7 @@ public partial class LightEditorCtrl : UserControl
             colorDialog.Color.A, colorDialog.Color.R, colorDialog.Color.G, colorDialog.Color.B
         );
 
-        Graphics.TilePreviewUpdated = true;
+        EditorGraphics.TilePreviewUpdated = true;
     }
 
     public void Cancel()
@@ -123,7 +123,7 @@ public partial class LightEditorCtrl : UserControl
         }
 
         mEditingLight.OffsetX = (int)nudOffsetX.Value;
-        Graphics.TilePreviewUpdated = true;
+        EditorGraphics.TilePreviewUpdated = true;
     }
 
     private void nudOffsetY_ValueChanged(object sender, EventArgs e)
@@ -134,7 +134,7 @@ public partial class LightEditorCtrl : UserControl
         }
 
         mEditingLight.OffsetY = (int)nudOffsetY.Value;
-        Graphics.TilePreviewUpdated = true;
+        EditorGraphics.TilePreviewUpdated = true;
     }
 
     private void nudSize_ValueChanged(object sender, EventArgs e)
@@ -145,7 +145,7 @@ public partial class LightEditorCtrl : UserControl
         }
 
         mEditingLight.Size = (int)nudSize.Value;
-        Graphics.TilePreviewUpdated = true;
+        EditorGraphics.TilePreviewUpdated = true;
     }
 
     private void nudIntensity_ValueChanged(object sender, EventArgs e)
@@ -156,7 +156,7 @@ public partial class LightEditorCtrl : UserControl
         }
 
         mEditingLight.Intensity = (byte)nudIntensity.Value;
-        Graphics.TilePreviewUpdated = true;
+        EditorGraphics.TilePreviewUpdated = true;
     }
 
     private void nudExpand_ValueChanged(object sender, EventArgs e)
@@ -167,7 +167,7 @@ public partial class LightEditorCtrl : UserControl
         }
 
         mEditingLight.Expand = (int)nudExpand.Value;
-        Graphics.TilePreviewUpdated = true;
+        EditorGraphics.TilePreviewUpdated = true;
     }
 
 }

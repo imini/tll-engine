@@ -11,7 +11,7 @@ using Intersect.Framework.Core.GameObjects.Maps;
 using Intersect.Framework.Core.GameObjects.Maps.Attributes;
 using Intersect.GameObjects;
 using Newtonsoft.Json;
-using Graphics = Intersect.Editor.Core.Graphics;
+using EditorGraphics = Intersect.Editor.Core.Graphics;
 
 namespace Intersect.Editor.Maps;
 
@@ -203,9 +203,9 @@ public partial class MapInstance : MapDescriptor, IGameObject<Guid, MapInstance>
                 Globals.CurrentMap = this;
                 using (var ms = new MemoryStream())
                 {
-                    lock (Graphics.GraphicsLock)
+                    lock (EditorGraphics.GraphicsLock)
                     {
-                        var screenshotTexture = Graphics.ScreenShotMap();
+                        var screenshotTexture = EditorGraphics.ScreenShotMap();
                         screenshotTexture.Save(ms, ImageFormat.Png);
                         ms.Close();
                     }
