@@ -7,7 +7,7 @@ using Intersect.Framework.Core.GameObjects.Animations;
 using Intersect.Framework.Core.GameObjects.Maps;
 using Intersect.GameObjects;
 using Intersect.Utilities;
-using Graphics = Intersect.Editor.Core.Graphics;
+using EditorGraphics = Intersect.Editor.Core.Graphics;
 
 namespace Intersect.Editor.Maps;
 
@@ -157,7 +157,7 @@ partial class MapProperties
             {
                 Globals.MapEditorWindow.PrepUndoState();
                 mMyMap.IsIndoors = value;
-                Graphics.TilePreviewUpdated = true;
+                EditorGraphics.TilePreviewUpdated = true;
                 Globals.MapEditorWindow.AddUndoState();
             }
         }
@@ -175,7 +175,7 @@ partial class MapProperties
                 Globals.MapEditorWindow.PrepUndoState();
                 mMyMap.Brightness = Math.Max(value, 0);
                 mMyMap.Brightness = Math.Min(mMyMap.Brightness, 100);
-                Graphics.TilePreviewUpdated = true;
+                EditorGraphics.TilePreviewUpdated = true;
                 Globals.MapEditorWindow.AddUndoState();
             }
         }
@@ -193,7 +193,7 @@ partial class MapProperties
                 Globals.MapEditorWindow.PrepUndoState();
                 mMyMap.PlayerLightSize = Math.Max(value, 0);
                 mMyMap.PlayerLightSize = Math.Min(mMyMap.PlayerLightSize, 1000);
-                Graphics.TilePreviewUpdated = true;
+                EditorGraphics.TilePreviewUpdated = true;
                 Globals.MapEditorWindow.AddUndoState();
             }
         }
@@ -211,7 +211,7 @@ partial class MapProperties
                 Globals.MapEditorWindow.PrepUndoState();
                 mMyMap.PlayerLightExpand = Math.Max(value, 0f);
                 mMyMap.PlayerLightExpand = Math.Min(mMyMap.PlayerLightExpand, 1f);
-                Graphics.TilePreviewUpdated = true;
+                EditorGraphics.TilePreviewUpdated = true;
                 Globals.MapEditorWindow.AddUndoState();
             }
         }
@@ -229,7 +229,7 @@ partial class MapProperties
                 Globals.MapEditorWindow.PrepUndoState();
                 var val = Math.Max(value, (byte)0);
                 mMyMap.PlayerLightIntensity = (byte)Math.Min(val, (byte)255);
-                Graphics.TilePreviewUpdated = true;
+                EditorGraphics.TilePreviewUpdated = true;
                 Globals.MapEditorWindow.AddUndoState();
             }
         }
@@ -253,7 +253,7 @@ partial class MapProperties
             {
                 Globals.MapEditorWindow.PrepUndoState();
                 mMyMap.PlayerLightColor = Color.FromArgb(value.A, value.R, value.G, value.B);
-                Graphics.TilePreviewUpdated = true;
+                EditorGraphics.TilePreviewUpdated = true;
                 Globals.MapEditorWindow.AddUndoState();
             }
         }
@@ -563,7 +563,7 @@ partial class MapProperties
             {
                 Globals.MapEditorWindow.PrepUndoState();
                 mMyMap.HideEquipment = value;
-                Graphics.TilePreviewUpdated = true;
+                EditorGraphics.TilePreviewUpdated = true;
                 Globals.MapEditorWindow.AddUndoState();
             }
         }

@@ -4,7 +4,7 @@ using Intersect.Editor.Localization;
 using Intersect.Editor.Maps;
 using Microsoft.Xna.Framework.Graphics;
 using WeifenLuo.WinFormsUI.Docking;
-using Graphics = Intersect.Editor.Core.Graphics;
+using EditorGraphics = Intersect.Editor.Core.Graphics;
 
 namespace Intersect.Editor.Forms.DockingElements;
 
@@ -78,19 +78,19 @@ public partial class FrmMapGrid : DockContent
                 mChain.Dispose();
             }
 
-            if (Graphics.GetGraphicsDevice() != null)
+            if (EditorGraphics.GetGraphicsDevice() != null)
             {
                 if (pnlMapGrid.Width > 0 && pnlMapGrid.Height > 0)
                 {
                     if (pnlMapGrid.Width > 0 && pnlMapGrid.Height > 0)
                     {
                         mChain = new SwapChainRenderTarget(
-                            Graphics.GetGraphicsDevice(), pnlMapGrid.Handle, pnlMapGrid.Width, pnlMapGrid.Height,
+                            EditorGraphics.GetGraphicsDevice(), pnlMapGrid.Handle, pnlMapGrid.Width, pnlMapGrid.Height,
                             false, SurfaceFormat.Color, DepthFormat.Depth24, 0, RenderTargetUsage.DiscardContents,
                             PresentInterval.Immediate
                         );
 
-                        Graphics.SetMapGridChain(mChain);
+                        EditorGraphics.SetMapGridChain(mChain);
                     }
                 }
             }

@@ -84,6 +84,11 @@ public partial class MapOptions
     public LayerOptions Layers { get; set; } = new();
 
     /// <summary>
+    /// Configuration for multi-floor rendering.
+    /// </summary>
+    public MultiFloorOptions MultiFloor { get; set; } = new();
+
+    /// <summary>
     /// The height of the map in tiles.
     /// </summary>
     public int MapHeight
@@ -204,6 +209,8 @@ public partial class MapOptions
 
         MapItemWidth = MapItemWidth < 1 ? (uint)TileWidth : MapItemWidth;
         MapItemHeight = MapItemHeight < 1 ? (uint)TileHeight : MapItemHeight;
+
+        MultiFloor?.Validate();
 
         RecalculateWorldScale();
     }

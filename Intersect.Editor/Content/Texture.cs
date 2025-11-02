@@ -3,7 +3,7 @@ using Intersect.IO.Files;
 using Intersect.Utilities;
 using Microsoft.Extensions.Logging;
 using Microsoft.Xna.Framework.Graphics;
-using Graphics = Intersect.Editor.Core.Graphics;
+using EditorGraphics = Intersect.Editor.Core.Graphics;
 
 namespace Intersect.Editor.Content;
 
@@ -50,7 +50,7 @@ public partial class Texture
         {
             try
             {
-                mTexture = Texture2D.FromStream(Graphics.GetGraphicsDevice(), fileStream);
+                mTexture = Texture2D.FromStream(EditorGraphics.GetGraphicsDevice(), fileStream);
                 if (mTexture == null)
                 {
                     Intersect.Core.ApplicationContext.Context.Value?.Logger.LogError($"Failed to load texture due to unknown error: {relativePath}");
