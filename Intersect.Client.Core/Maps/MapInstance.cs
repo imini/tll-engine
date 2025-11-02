@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.Collections.Concurrent;
+using System.Linq;
 using Intersect.Client.Core;
 using Intersect.Client.Entities;
 using Intersect.Client.Entities.Events;
@@ -27,6 +28,7 @@ using Intersect.Network.Packets.Server;
 using Intersect.Utilities;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
+using Intersect.Config;
 
 namespace Intersect.Client.Maps;
 
@@ -128,9 +130,9 @@ public partial class MapInstance : MapDescriptor, IGameObject<Guid, MapInstance>
 
     private bool mTexturesFound = false;
 
-    private readonly Dictionary<string, Dictionary<object, GameTileBuffer[]>> _tileBuffersPerTexturePerLayer = []; // [Layer][Platform Texture][Buffer Index]
+    private readonly Dictionary<string, Dictionary<int, Dictionary<object, GameTileBuffer[]>>> _tileBuffersPerTexturePerLayer = [];
 
-    private readonly Dictionary<string, GameTileBuffer[][]> _tileBuffersPerLayer = []; // [Layer][Autotile Frame][Buffer Index]
+    private readonly Dictionary<string, Dictionary<int, GameTileBuffer[][]>> _tileBuffersPerLayer = [];
 
     //Initialization
     public MapInstance(Guid id) : base(id)
@@ -457,8 +459,13 @@ public partial class MapInstance : MapDescriptor, IGameObject<Guid, MapInstance>
                 continue;
             }
 
-            // Find the VBO, update it.
-            if (!_tileBuffersPerTexturePerLayer.TryGetValue(layer, out var tileBuffer))
+            if (!_tileBuffersPerTexturePerLayer.TryGetValue(layer, out var tileBuffersPerFloor))
+            {
+                continue;
+            }
+
+            var floorLevel = Options.Instance.Map.MultiFloor.Enabled ? GetTileFloorLevel(x, y) : 0;
+            if (!tileBuffersPerFloor.TryGetValue(floorLevel, out var tileBuffersPerTexture))
             {
                 continue;
             }
@@ -487,7 +494,7 @@ public partial class MapInstance : MapDescriptor, IGameObject<Guid, MapInstance>
             }
 
             var tilesetPlatformTexture = tilesetTexture.GetTexture();
-            if (!tileBuffer.TryGetValue(tilesetPlatformTexture, out var tileBuffersForTexture))
+            if (!tileBuffersPerTexture.TryGetValue(tilesetPlatformTexture, out var tileBuffersForTexture))
             {
                 continue;
             }
@@ -810,7 +817,7 @@ public partial class MapInstance : MapDescriptor, IGameObject<Guid, MapInstance>
             //     () =>
             //     {
                     var startVbo = DateTime.UtcNow;
-                    Dictionary<string, GameTileBuffer[][]> buffers = [];
+                    Dictionary<string, Dictionary<int, GameTileBuffer[][]>> buffers = [];
                     foreach (var layer in Options.Instance.Map.Layers.All)
                     {
                         var layerBuffers = DrawMapLayer(layer, X, Y);
@@ -820,12 +827,15 @@ public partial class MapInstance : MapDescriptor, IGameObject<Guid, MapInstance>
                         }
 
                         buffers[layer] = layerBuffers;
-                        for (var animationFrameIndex = 0; animationFrameIndex < MapAnimationFrames; animationFrameIndex++)
+                        foreach (var floorBuffers in layerBuffers.Values)
                         {
-                            var layerBuffersForFrame = layerBuffers[animationFrameIndex];
-                            foreach (var tileBuffer in layerBuffersForFrame)
+                            for (var animationFrameIndex = 0; animationFrameIndex < MapAnimationFrames; animationFrameIndex++)
                             {
-                                tileBuffer.SetData();
+                                var layerBuffersForFrame = floorBuffers[animationFrameIndex];
+                                foreach (var tileBuffer in layerBuffersForFrame)
+                                {
+                                    tileBuffer.SetData();
+                                }
                             }
                         }
                     }
@@ -854,19 +864,27 @@ public partial class MapInstance : MapDescriptor, IGameObject<Guid, MapInstance>
         {
             if (_tileBuffersPerTexturePerLayer.Remove(layer, out var tileBuffersPerTextureForLayer))
             {
+                foreach (var textureMap in tileBuffersPerTextureForLayer.Values)
+                {
+                    textureMap.Clear();
+                }
+
                 tileBuffersPerTextureForLayer.Clear();
             }
 
-            if (!_tileBuffersPerLayer.TryGetValue(layer, out var layerBuffers))
+            if (!_tileBuffersPerLayer.TryGetValue(layer, out var layerBuffersByFloor))
             {
                 continue;
             }
 
-            foreach (var layerBuffersForFrame in layerBuffers)
+            foreach (var layerBuffers in layerBuffersByFloor.Values)
             {
-                foreach (var tileBuffer in layerBuffersForFrame)
+                foreach (var layerBuffersForFrame in layerBuffers)
                 {
-                    tileBuffer.Dispose();
+                    foreach (var tileBuffer in layerBuffersForFrame)
+                    {
+                        tileBuffer.Dispose();
+                    }
                 }
             }
         }
@@ -901,24 +919,94 @@ public partial class MapInstance : MapDescriptor, IGameObject<Guid, MapInstance>
             < 1 => Options.Instance.Map.Layers.LowerLayers,
         };
 
+        var multiFloorOptions = Options.Instance.Map.MultiFloor;
+        var multiFloorEnabled = multiFloorOptions.Enabled && Globals.Me is not null;
+        var viewerFloor = Globals.Me?.Z ?? 0;
+
         foreach (var drawLayer in drawLayers)
         {
-            if (!_tileBuffersPerLayer.TryGetValue(drawLayer, out var layerBuffers))
+            if (!_tileBuffersPerLayer.TryGetValue(drawLayer, out var layerBuffersByFloor))
             {
                 continue;
             }
 
-            if (layerBuffers[Globals.AnimationFrame] == null)
-            {
-                continue;
-            }
+            var floorKeys = layerBuffersByFloor.Keys.OrderBy(static key => key);
 
-            var buffersForFrame = layerBuffers[Globals.AnimationFrame];
-            foreach (var buffer in buffersForFrame)
+            foreach (var floorKey in floorKeys)
             {
-                Graphics.Renderer?.DrawTileBuffer(buffer);
+                if (multiFloorEnabled && !IsFloorVisible(viewerFloor, floorKey, multiFloorOptions))
+                {
+                    continue;
+                }
+
+                var floorBuffers = layerBuffersByFloor[floorKey];
+                var buffersForFrame = floorBuffers[Globals.AnimationFrame];
+                if (buffersForFrame == null)
+                {
+                    continue;
+                }
+
+                foreach (var buffer in buffersForFrame)
+                {
+                    Graphics.Renderer?.DrawTileBuffer(buffer);
+                }
             }
         }
+    }
+
+    private static bool IsFloorVisible(int viewerFloor, int floorLevel, MultiFloorOptions options)
+    {
+        var delta = floorLevel - viewerFloor;
+        if (delta > options.VisibleFloorsAbove)
+        {
+            return false;
+        }
+
+        if (-delta > options.VisibleFloorsBelow)
+        {
+            return false;
+        }
+
+        return true;
+    }
+
+    private bool ShouldRenderTile(int tileX, int tileY)
+    {
+        if (!Options.Instance.Map.MultiFloor.Enabled)
+        {
+            return true;
+        }
+
+        if (Globals.Me is not { } player)
+        {
+            return true;
+        }
+
+        var tileFloor = GetTileFloorLevel(tileX, tileY);
+        return IsFloorVisible(player.Z, tileFloor, Options.Instance.Map.MultiFloor);
+    }
+
+    private int GetTileFloorLevel(int tileX, int tileY)
+    {
+        if (tileX < 0 || tileY < 0 || tileX >= _width || tileY >= _height)
+        {
+            return 0;
+        }
+
+        if (Attributes[tileX, tileY] is MapZDimensionAttribute zAttribute)
+        {
+            if (zAttribute.FloorLevel.HasValue)
+            {
+                return zAttribute.FloorLevel.Value;
+            }
+
+            if (zAttribute.BlockedLevel > 0)
+            {
+                return zAttribute.BlockedLevel - 1;
+            }
+        }
+
+        return 0;
     }
 
     public void DrawItemsAndLights()
@@ -933,6 +1021,11 @@ public partial class MapInstance : MapDescriptor, IGameObject<Guid, MapInstance>
             // Calculate tile coordinates.
             var tileX = tileIndex % _width;
             var tileY = (int)Math.Floor(tileIndex / (float)_width);
+
+            if (!ShouldRenderTile(tileX, tileY))
+            {
+                continue;
+            }
 
             // Loop through this in reverse to match client/server display and pick-up order.
             for (var index = itemInstancesOnTile.Count - 1; index >= 0; index--)
@@ -974,6 +1067,11 @@ public partial class MapInstance : MapDescriptor, IGameObject<Guid, MapInstance>
         //Add lights to our darkness texture
         foreach (var light in Lights)
         {
+            if (!ShouldRenderTile(light.TileX, light.TileY))
+            {
+                continue;
+            }
+
             double w = light.Size;
             var x = X + (light.TileX * _tileWidth + light.OffsetX) + _tileWidth / 2f;
             var y = Y + (light.TileY * _tileHeight + light.OffsetY) + _tileHeight / 2f;
@@ -1004,6 +1102,11 @@ public partial class MapInstance : MapDescriptor, IGameObject<Guid, MapInstance>
 
         // Is this an actual location on this map?
         if (!player.TryGetRealLocation(ref x, ref y, ref mapId) || mapId != Id)
+        {
+            return;
+        }
+
+        if (!ShouldRenderTile(x, y))
         {
             return;
         }
@@ -1179,7 +1282,7 @@ public partial class MapInstance : MapDescriptor, IGameObject<Guid, MapInstance>
         }
     }
 
-    private GameTileBuffer[][]? DrawMapLayer(string layerName, int xOffset = 0, int yOffset = 0)
+    private Dictionary<int, GameTileBuffer[][]>? DrawMapLayer(string layerName, int xOffset = 0, int yOffset = 0)
     {
         if (!Layers.TryGetValue(layerName, out var layerTiles))
         {
@@ -1191,7 +1294,10 @@ public partial class MapInstance : MapDescriptor, IGameObject<Guid, MapInstance>
             return null;
         }
 
-        var tileBuffersPerTexture = new Dictionary<object, GameTileBuffer[]>();
+        var tileBuffersPerFloor = new Dictionary<int, Dictionary<object, GameTileBuffer[]>>();
+        _tileBuffersPerTexturePerLayer[layerName] = tileBuffersPerFloor;
+
+        var multiFloorEnabled = Options.Instance.Map.MultiFloor.Enabled;
 
         for (var x = 0; x < _width; x++)
         {
@@ -1220,12 +1326,14 @@ public partial class MapInstance : MapDescriptor, IGameObject<Guid, MapInstance>
                     continue;
                 }
 
-                GameTileBuffer[] animationFrameBuffers;
-                if (tileBuffersPerTexture.TryGetValue(platformTexture, out var tileBuffers))
+                var floorLevel = multiFloorEnabled ? GetTileFloorLevel(x, y) : 0;
+                if (!tileBuffersPerFloor.TryGetValue(floorLevel, out var tileBuffersPerTexture))
                 {
-                    animationFrameBuffers = tileBuffers;
+                    tileBuffersPerTexture = new Dictionary<object, GameTileBuffer[]>();
+                    tileBuffersPerFloor[floorLevel] = tileBuffersPerTexture;
                 }
-                else
+
+                if (!tileBuffersPerTexture.TryGetValue(platformTexture, out var animationFrameBuffers))
                 {
                     animationFrameBuffers = new GameTileBuffer[MapAnimationFrames];
                     for (var animationFrameIndex = 0; animationFrameIndex < MapAnimationFrames; animationFrameIndex++)
@@ -1326,34 +1434,35 @@ public partial class MapInstance : MapDescriptor, IGameObject<Guid, MapInstance>
             }
         }
 
-        var outputBuffers = new GameTileBuffer[MapAnimationFrames][];
-        for (var animationFrameIndex = 0; animationFrameIndex < MapAnimationFrames; animationFrameIndex++)
+        if (tileBuffersPerFloor.Count == 0)
         {
-            outputBuffers[animationFrameIndex] = new GameTileBuffer[tileBuffersPerTexture.Count];
+            return null;
         }
 
-        var valueArrays = tileBuffersPerTexture.Values.ToArray();
-        for (var bufferIndex = 0; bufferIndex < valueArrays.Length; bufferIndex++)
+        var output = new Dictionary<int, GameTileBuffer[][]>();
+        foreach (var (floorLevel, tileBuffersPerTexture) in tileBuffersPerFloor)
         {
-            var bufferGroup = valueArrays[bufferIndex];
+            var outputBuffers = new GameTileBuffer[MapAnimationFrames][];
             for (var animationFrameIndex = 0; animationFrameIndex < MapAnimationFrames; animationFrameIndex++)
             {
-                var bufferForFrame = bufferGroup[animationFrameIndex];
-                // if (bufferForFrame is MonoTileBuffer monoTileBuffer)
-                // {
-                //     ApplicationContext.Context.Value?.Logger.LogInformation($"[{Name}][{layerName}] Buffer for {monoTileBuffer._texture?.Name} frame {i} has {monoTileBuffer._addedTileCount.Count} unique tiles");
-                //     foreach (var (key, value) in monoTileBuffer._addedTileCount.OrderByDescending(kvp => kvp.Value))
-                //     {
-                //         ApplicationContext.Context.Value?.Logger.LogInformation($"[{Name}][{layerName}] {key} has {value} occurrences");
-                //     }
-                // }
-                outputBuffers[animationFrameIndex][bufferIndex] = bufferForFrame;
+                outputBuffers[animationFrameIndex] = new GameTileBuffer[tileBuffersPerTexture.Count];
             }
+
+            var bufferIndex = 0;
+            foreach (var bufferGroup in tileBuffersPerTexture.Values)
+            {
+                for (var animationFrameIndex = 0; animationFrameIndex < MapAnimationFrames; animationFrameIndex++)
+                {
+                    outputBuffers[animationFrameIndex][bufferIndex] = bufferGroup[animationFrameIndex];
+                }
+
+                bufferIndex++;
+            }
+
+            output[floorLevel] = outputBuffers;
         }
 
-        _tileBuffersPerTexturePerLayer.Add(layerName, tileBuffersPerTexture);
-
-        return outputBuffers;
+        return output;
     }
 
     /// <summary>

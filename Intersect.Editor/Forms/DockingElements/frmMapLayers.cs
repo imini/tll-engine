@@ -1,3 +1,4 @@
+using System;
 using Intersect.Config;
 using Intersect.Editor.Content;
 using Intersect.Editor.Core;
@@ -470,12 +471,12 @@ public partial class FrmMapLayers : DockContent
     // Used for returning an integer value depending on which radio button is selected on the forms. This is merely used to make PlaceAtrribute less messy.
     private byte GetEditorDimensionGateway()
     {
-        return rbGateway1.Checked ? (byte)1 : rbGateway2.Checked ? (byte)2 : (byte)0;
+        return (byte)Math.Clamp((int)nudGatewayLevel.Value, byte.MinValue, byte.MaxValue);
     }
 
     private byte GetEditorDimensionBlock()
     {
-        return rbBlock1.Checked ? (byte)1 : rbBlock2.Checked ? (byte)2 : (byte)0;
+        return (byte)Math.Clamp((int)nudBlockLevel.Value, byte.MinValue, byte.MaxValue);
     }
 
     private static readonly Dictionary<MapAttributeType, string> AttributeTypeStrings = new()
@@ -539,6 +540,9 @@ public partial class FrmMapLayers : DockContent
                 break;
             case MapAttributeType.ZDimension:
                 grpZDimension.Visible = true;
+                nudGatewayLevel.Value = 0;
+                nudBlockLevel.Value = 0;
+                nudFloorLevel.Value = -1;
                 break;
             case MapAttributeType.Warp:
                 grpWarp.Visible = true;
@@ -690,6 +694,8 @@ public partial class FrmMapLayers : DockContent
         var zDimensionAttribute = (MapZDimensionAttribute)MapAttribute.CreateAttribute(MapAttributeType.ZDimension);
         zDimensionAttribute.GatewayTo = GetEditorDimensionGateway();
         zDimensionAttribute.BlockedLevel = GetEditorDimensionBlock();
+        var floorValue = (int)nudFloorLevel.Value;
+        zDimensionAttribute.FloorLevel = floorValue < 0 ? null : (short?)floorValue;
         return zDimensionAttribute;
     }
 
@@ -1042,14 +1048,9 @@ public partial class FrmMapLayers : DockContent
 
         //Z-Dimension
         grpZDimension.Text = Strings.Attributes.ZDimension;
-        grpGateway.Text = Strings.Attributes.ZGateway;
-        grpDimBlock.Text = Strings.Attributes.ZBlock;
-        rbGatewayNone.Text = Strings.Attributes.ZNone;
-        rbGateway1.Text = Strings.Attributes.ZLevel1;
-        rbGateway2.Text = Strings.Attributes.ZLevel2;
-        rbBlockNone.Text = Strings.Attributes.ZNone;
-        rbBlock1.Text = Strings.Attributes.ZLevel1;
-        rbBlock2.Text = Strings.Attributes.ZLevel2;
+        lblGatewayLevel.Text = Strings.Attributes.ZGatewayLevel;
+        lblBlockLevel.Text = Strings.Attributes.ZBlockLevel;
+        lblFloorLevel.Text = Strings.Attributes.ZFloor;
 
         //Warp
         grpWarp.Text = Strings.Attributes.Warp;
